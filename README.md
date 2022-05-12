@@ -16,11 +16,11 @@ Examples on tool usage can be found in the [VSS Makefile](https://github.com/COV
 
  Tool | Description | Type of Tool | Documentation |
 | ------------------ | ----------- | -------------------- |-------------------- |
-| [vspec2x.py](vspec2x.py) | Parses and expands VSS into different text based output formats. Currently supports `json`, `yaml`,`csv` | Community Supported | `./vspec2x --help` | 
-[vspec2csv.py](vspec2csv.py) | Shortcut for [vspec2x.py](vspec2x.py) generating CSV output | Community Supported | -
-[vspec2json.py](vspec2json.py) |  Shortcut for [vspec2x.py](vspec2x.py) generating JSON output | Community Supported | - |
-[vspec2yaml.py](vspec2yaml.py) | Shortcut for [vspec2x.py](vspec2x.py) generating flattened YAML output | Community Supported | - |
-| [vspec2binary.py](vspec2binary.py) | The binary toolset consists of a tool that translates the VSS YAML specification to the binary file format (see below), and two libraries that provides methods that are likely to be needed by a server that manages the VSS tree, one written in C, and one in Go | Community Supported | [Documentation](binary/README.md) | 
+[vspec2x.py](vspec2x.py) | Parses and expands VSS into different text based output formats. Currently supports `json`, `yaml`,`csv` | Community Supported | [Documentation](docs/vspec2x.md) | 
+[vspec2csv.py](vspec2csv.py) | Shortcut for [vspec2x.py](vspec2x.py) generating CSV output | Community Supported | [Documentation](docs/vspec2x.md) 
+[vspec2json.py](vspec2json.py) |  Shortcut for [vspec2x.py](vspec2x.py) generating JSON output | Community Supported | [Documentation](docs/vspec2x.md)  |
+[vspec2yaml.py](vspec2yaml.py) | Shortcut for [vspec2x.py](vspec2x.py) generating flattened YAML output | Community Supported | [Documentation](docs/vspec2x.md)  |
+[vspec2binary.py](vspec2binary.py) | Shortcut for [vspec2x.py](vspec2x.py) generating binary output. The binary toolset additionaly consist of two libraries that provides methods that are likely to be needed by a server that manages the VSS tree, one written in C, and one in Go | Community Supported | [vspec2binary documentation](docs/vspec2x.md), [Binary Framework documentation](binary/README.md) | 
 [vspec2franca.py](vspec2franca.py) | Parses and expands a VSS and generates a Franca IDL specification | Community Supported | - |
 [test_contants.py](tests/model/test_contants.py) | Tool used for internal testing  | Community Supported | - |
 [test_vsstree.py](tests/model/test_vsstree.py) | Tool used for internal testing | Community Supported | - |
