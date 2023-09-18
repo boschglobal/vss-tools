@@ -16,8 +16,9 @@ import uuid
 import sys
 import collections
 import logging
+import re
 from copy import deepcopy
-from typing import List, Optional
+from typing import List, Optional, Set
 
 from anytree import (Resolver, LevelOrderIter, PreOrderIter, RenderTree)  # type: ignore[import]
 
@@ -26,6 +27,7 @@ from .model.exceptions import ImpossibleMergeException, IncompleteElementExcepti
 from .model.constants import VSSTreeType, Unit
 
 nestable_types = set(["branch", "struct"])
+allowed_value_regexp = re.compile(r'^[A-Z][A-Z_0-9]*$')
 
 
 class VSpecError(Exception):
@@ -95,7 +97,7 @@ def load_tree(
         logging.error("Instance expansion is not supported for VSS type tree.")
         sys.exit(-1)
 
-    flat_model = load_flat_model(file_name, "", include_paths, tree_type)
+    flat_model = load_flat_model(file_name, "", include_paths, tree_type, break_on_name_style_violation)
     absolute_path_flat_model = create_absolute_paths(flat_model)
     deep_model = create_nested_model(absolute_path_flat_model, file_name)
     cleanup_deep_model(deep_model)
@@ -120,7 +122,7 @@ def check_type_usage(tree: VSSNode, tree_type: VSSTreeType, type_tree: Optional[
         check_data_type_references_across_trees(tree, type_tree)
 
 
-def load_flat_model(file_name, prefix, include_paths, tree_type: VSSTreeType):
+def load_flat_model(file_name, prefix, include_paths, tree_type: VSSTreeType, break_on_name_style_violation: bool):
     # Hooks into YAML parser to add line numbers
     # and file name into each element
     def yaml_compose_node(parent, index):
@@ -173,7 +175,7 @@ def load_flat_model(file_name, prefix, include_paths, tree_type: VSSTreeType):
 
     directory, text = search_and_read(file_name, include_paths)
 
-    # Do a trial pasing of the file to find out if it is list- or
+    # Do a trial parsing of the file to find out if it is list- or
     # object-formatted.
     loader = yaml.Loader(text)
     loader.compose_node = yaml_compose_node  # type: ignore[assignment]
@@ -182,7 +184,7 @@ def load_flat_model(file_name, prefix, include_paths, tree_type: VSSTreeType):
     test_yaml = loader.get_data()
 
     # Depending on if this is a list or an object, expand
-    # the #include diretives differently
+    # the #include directives differently
     #
     if isinstance(test_yaml, list):
         text = yamilify_includes(text, True)
@@ -212,12 +214,12 @@ def load_flat_model(file_name, prefix, include_paths, tree_type: VSSTreeType):
     expanded_includes = expand_includes(
         raw_yaml, prefix, include_paths, tree_type)
 
-    flat_model = cleanup_flat_entries(expanded_includes, tree_type)
+    flat_model = cleanup_flat_entries(expanded_includes, tree_type, break_on_name_style_violation)
 
     return flat_model
 
 
-def cleanup_flat_entries(flat_model, tree_type: VSSTreeType):
+def cleanup_flat_entries(flat_model, tree_type: VSSTreeType, break_on_name_style_violation: bool):
     """
     # 1. Check that the declared type is part of the available types for the tree.
     # 2. Check that allowed values are provided as arrays.
@@ -236,9 +238,28 @@ def cleanup_flat_entries(flat_model, tree_type: VSSTreeType):
             raise VSpecError(elem["$file_name$"], elem["$line$"],
                              "Unknown type: {}".format(elem["type"]))
 
-        if "allowed" in elem and not isinstance(elem["allowed"], list):
-            raise VSpecError(elem["$file_name$"], elem["$line$"],
-                             "Allowed values are not represented as array.")
+        style_violated = False
+        if "allowed" in elem:
+            if not isinstance(elem["allowed"], list):
+                raise VSpecError(elem["$file_name$"], elem["$line$"],
+                                 "Allowed values are not represented as array.")
+
+            if elem["datatype"] == "string":
+                name_set: Set(str) = set()
+                for literal in elem["allowed"]:
+                    if not allowed_value_regexp.match(literal):
+                        logging.warning("The value %s is not recommended for allowed values in VSS standard catalog",
+                                        literal)
+                        style_violated = True
+                    compare_name = literal.lower()
+                    if compare_name in name_set:
+                        logging.warning("The name %s used multiple times (possibly with different case)", literal)
+                        style_violated = True
+                    name_set.add(compare_name)
+
+    if break_on_name_style_violation and style_violated:
+        logging.error("Strict style violated, aborting")
+        sys.exit(-1)
 
     return flat_model
 
@@ -291,16 +312,37 @@ def clean_metadata(node):
             clean_metadata(elem)
 
 
-def verify_mandatory_attributes(node, abort_on_unknown_attribute: bool):
+def verify_vss_node(node, abort_on_unknown_attribute: bool, abort_on_namestyle: bool, name_set: Set[str] = set()):
     """
     Verify that mandatory attributes are present.
     Need to be checked first after overlays (if any) have been applied, as attributes are not
     mandatory in individual files but only in the final tree
+    Also checks mandatory and recommended naming rules.
+    For now recommended are required to be fulfilled for the standard catalog to make it as
+    easy as possible to support across multiple tools.
     """
     if isinstance(node, VSSNode):
+        compare_name = node.name.lower()
+        if compare_name in name_set:
+            logging.warning("The name %s has already been used (possibly with different case) for a parent node",
+                            node.name)
+            if abort_on_namestyle:
+                logging.error("Strict style violated, aborting")
+                sys.exit(-1)
+        name_set.add(compare_name)
         node.verify_attributes(abort_on_unknown_attribute)
+        child_names: Set[str] = set()
+        # Name for individual elements are checked by validate_name_style
         for child in node.children:
-            verify_mandatory_attributes(child, abort_on_unknown_attribute)
+            child_compare_name = child.name.lower()
+            if child_compare_name in child_names:
+                logging.warning("The name %s has already been used (possibly with different case) for a sibling node",
+                                child.name)
+                if abort_on_namestyle:
+                    logging.error("Strict style violated, aborting")
+                    sys.exit(-1)
+            child_names.add(child_compare_name)
+            verify_vss_node(child, abort_on_unknown_attribute, abort_on_namestyle, name_set.copy())
 
 
 #

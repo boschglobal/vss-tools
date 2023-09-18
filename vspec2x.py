@@ -166,7 +166,7 @@ def main(arguments):
     if args.vspec_types_file:
         data_type_tree = processDataTypeTree(
             parser, args, include_dirs, abort_on_namestyle)
-        vspec.verify_mandatory_attributes(data_type_tree, abort_on_unknown_attribute)
+        vspec.verify_vss_node(data_type_tree, abort_on_unknown_attribute, abort_on_namestyle)
 
     try:
         logging.info(f"Loading vspec from {args.vspec_file}...")
@@ -186,7 +186,7 @@ def main(arguments):
         vspec.expand_tree_instances(tree)
 
         vspec.clean_metadata(tree)
-        vspec.verify_mandatory_attributes(tree, abort_on_unknown_attribute)
+        vspec.verify_vss_node(tree, abort_on_unknown_attribute, abort_on_namestyle)
         logging.info("Calling exporter...")
 
         # temporary until all exporters support data type tree

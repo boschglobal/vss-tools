@@ -1,0 +1,74 @@
+#
+A:
+  type: branch
+  description: This description is mandatory!
+
+A.456:
+  datatype: uint8
+  type: sensor
+  unit: km
+  description: Name should not start with a digit
+
+A.B:
+  datatype: uint8
+  type: sensor
+  unit: km
+  description: OK name
+
+A.B:
+  datatype: uint8
+  type: sensor
+  unit: km
+  description: Repeated name - but this is considered as redefinition rather than another with same name
+
+
+A.NonRecommendedValue:
+  datatype: string
+  type: sensor
+  unit: km
+  allowed: ['HUKL', 'bukl', '123']
+  description: Name should not start with a digit
+
+
+A.RepeatedLiterals:
+  datatype: string
+  type: sensor
+  unit: km
+  allowed: ['HUKL', 'hukl']
+  description: different case of hukl
+
+A.C:
+  type: branch
+  description: A branch called C
+
+
+A.C.B:
+  datatype: uint8
+  type: sensor
+  unit: km
+  description: This is OK, the signal A.B is not a direct father or direct sibling
+
+A.C.C:
+  datatype: uint8
+  type: sensor
+  unit: km
+  description: This is not recommended, we should not reuse same identifier in direct father/child
+
+A.C.Ax:
+  datatype: uint8
+  type: sensor
+  unit: km
+  description: This is also not recommended, grandfather is also called A
+
+
+A.C.Aaa:
+  datatype: uint8
+  type: sensor
+  unit: km
+  description: This is OK
+
+A.C.AaA:
+  datatype: uint8
+  type: sensor
+  unit: km
+  description: VSS is case sensitive, but in standard catalog we do not want signals that just differ by case
