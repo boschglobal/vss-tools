@@ -1,0 +1,11 @@
+#
+A:
+  type: branch
+  description: Branch A.
+
+A.Float:
+  datatype: float
+  type: sensor
+  allowed: [1.1, 2.2, 3.3]
+  default: 3.4
+  description: A string

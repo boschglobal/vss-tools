@@ -1,0 +1,7 @@
+"Signal","Type","DataType","Deprecated","Unit","Min","Max","Desc","Comment","Allowed","Default"
+"A","branch","","","","","","Branch A.","","",""
+"A.String","sensor","string","","","","","A string","","['JANUARY', 'FEBRUARY']","FEBRUARY"
+"A.StringArray","sensor","string[]","","","","","A string array","","['JANUARY', 'FEBRUARY', 'MARCH']","['FEBRUARY']"
+"A.Int","sensor","uint16","","","","","An int","","[1, 2, 3]","2"
+"A.IsBool","sensor","boolean","","","","","A boolean that only can be true!","Quite useless, but legal","[True]","True"
+"A.Float","actuator","float","","","","","A float","","[1.1, 2.54, 3]","2.54"

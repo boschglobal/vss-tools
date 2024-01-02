@@ -23,19 +23,25 @@ const SignalSpec[] signal_spec = [
 	type: "sensor",
 	description: "A string",
 	datatype: "string",
-	allowed: ['January', 'February']
+	allowed: ['JANUARY', 'FEBRUARY']
 },
 {	name: "A.StringArray",
 	type: "sensor",
 	description: "A string array",
 	datatype: "string[]",
-	allowed: ['January', 'February', 'March']
+	allowed: ['JANUARY', 'FEBRUARY', 'MARCH']
 },
 {	name: "A.Int",
 	type: "sensor",
 	description: "An int",
 	datatype: "uint16",
 	allowed: [1, 2, 3]
+},
+{	name: "A.IsBool",
+	type: "sensor",
+	description: "A boolean that only can be true!",
+	datatype: "boolean",
+	allowed: [True]
 },
 {	name: "A.Float",
 	type: "actuator",

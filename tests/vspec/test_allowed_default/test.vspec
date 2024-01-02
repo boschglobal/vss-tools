@@ -6,24 +6,35 @@ A:
 A.String:
   datatype: string
   type: sensor
-  allowed: ['January', 'February']
+  allowed: ['JANUARY', 'FEBRUARY']
+  default: 'FEBRUARY'
   description: A string
 
 A.StringArray:
   datatype: string[]
   type: sensor
-  allowed: ['January', 'February', 'March']
+  allowed: ['JANUARY', 'FEBRUARY', 'MARCH']
+  default: ['FEBRUARY']
   description: A string array
 
 A.Int:
   datatype: uint16
   type: sensor
   allowed: [1, 2, 3]
+  default: 2
   description: An int
+
+A.IsBool:
+  datatype: boolean
+  type: sensor
+  allowed: [True]
+  default: True
+  description: A boolean that only can be true!
+  comment: Quite useless, but legal
 
 A.Float:
   datatype: float
   type: actuator
   allowed: [1.1, 2.54, 3]
+  default: 2.54
   description: A float
-

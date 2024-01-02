@@ -1,0 +1,11 @@
+#
+A:
+  type: branch
+  description: Branch A.
+
+A.String:
+  datatype: string
+  type: sensor
+  default: 10
+  description: A string
+  comment: Numeric not accepted for string (error expected)

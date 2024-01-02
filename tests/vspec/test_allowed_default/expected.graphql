@@ -21,6 +21,9 @@ type A {
   """An int"""
   int: A_Int
 
+  """A boolean that only can be true!"""
+  isBool: A_IsBool
+
   """A float"""
   float: A_Float
 }
@@ -49,6 +52,15 @@ type A_Int {
   value: Int
 
   """Timestamp: An int"""
+  timestamp: String
+}
+
+"""A boolean that only can be true!"""
+type A_IsBool {
+  """Value: A boolean that only can be true!"""
+  value: Boolean
+
+  """Timestamp: A boolean that only can be true!"""
   timestamp: String
 }
 

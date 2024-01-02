@@ -1,0 +1,11 @@
+#
+A:
+  type: branch
+  description: Branch A.
+
+A.String:
+  datatype: string
+  type: sensor
+  allowed: ['1', '2']
+  description: A string
+  comment: Not only uppercase

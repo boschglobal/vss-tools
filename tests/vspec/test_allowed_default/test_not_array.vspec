@@ -1,0 +1,11 @@
+#
+A:
+  type: branch
+  description: Branch A.
+
+A.String:
+  datatype: string
+  type: sensor
+  allowed: "SINGLE_VALUE"
+  description: A string
+  comment: Not an array

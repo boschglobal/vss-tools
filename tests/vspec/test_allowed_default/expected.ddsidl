@@ -2,7 +2,7 @@ module A
 {
 module _String_M
 {
-enum _StringValues{January,February};
+enum _StringValues{JANUARY,FEBRUARY};
 };
 struct _String
 {
@@ -12,7 +12,7 @@ _String_M::_StringValues value;
 };
 module StringArray_M
 {
-enum StringArrayValues{January,February,March};
+enum StringArrayValues{JANUARY,FEBRUARY,MARCH};
 };
 struct StringArray
 {
@@ -25,6 +25,12 @@ struct _Int
 unsigned short value;
 //const string type ="sensor";
 //const string description="An int";
+};
+struct IsBool
+{
+boolean value;
+//const string type ="sensor";
+//const string description="A boolean that only can be true!";
 };
 struct _Float
 {

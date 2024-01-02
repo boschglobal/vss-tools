@@ -1,0 +1,11 @@
+#
+A:
+  type: branch
+  description: Branch A.
+
+A.Int:
+  datatype: uint16
+  type: sensor
+  default: 'ZWEI'
+  description: An int
+  comment: String on int not allowed

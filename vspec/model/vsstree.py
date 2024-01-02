@@ -20,6 +20,8 @@ import logging
 
 DEFAULT_SEPARATOR = "."
 ARRAY_SUBSCRIPT_OP = '[]'
+camel_value_regexp = re.compile('[A-Z][A-Z0-9_]*$')
+camel_regexp = re.compile('[A-Z][A-Za-z0-9]*$')
 
 
 class VSSNode(Node):
@@ -33,7 +35,7 @@ class VSSNode(Node):
     # qualified struct name.
     data_type_str: str = ""
     # data type - enum representation if available
-    datatype: Optional[VSSDataType]
+    datatype: Optional[VSSDataType] = None
 
     # The node types that the nodes can take
     available_types: Set[str] = set()
@@ -164,6 +166,103 @@ class VSSNode(Node):
                 f"Only branches can be instantiated. {self.qualified_name()} is of type {self.type}")
             sys.exit(-1)
 
+    def validate_allowed(self, value, sourcefile):
+        if self.datatype in [VSSDataType.STRING, VSSDataType.STRING_ARRAY]:
+            if not isinstance(value, str):
+                logging.error("Value %s for node %s is not a string", value, self.name)
+                sys.exit(-1)
+            if not camel_value_regexp.match(value):
+                raise NameStyleValidationException(
+                    (f'Value {value} for node "{self.name}" found in file "{sourcefile}" '
+                     'is not following naming conventions. '
+                     'It is recommended that allowed values starts with a capital letter, '
+                     'followed by capital letter A-Z, numbers 0-9 and underscore.'))
+        elif self.datatype in [VSSDataType.BOOLEAN, VSSDataType.BOOLEAN_ARRAY]:
+            if not isinstance(value, bool):
+                logging.error("Value %s for node %s is not a boolean", value, self.name)
+                sys.exit(-1)
+        else:
+            if not isinstance(value, (int, float)):
+                logging.error("Value %s for node %s is not int or float", value, self.name)
+                sys.exit(-1)
+
+    def validate_default(self, value, allowed_names, sourcefile):
+        if self.datatype in [VSSDataType.STRING]:
+            if not isinstance(value, str):
+                logging.error("Default value %s for node %s is not a string", value, self.name)
+                sys.exit(-1)
+        elif self.datatype in [VSSDataType.STRING_ARRAY]:
+            if isinstance(value, list):
+                for subvalue in value:
+                    if not isinstance(subvalue, str):
+                        logging.error("Default value %s for node %s is not a string", subvalue, self.name)
+                        sys.exit(-1)
+            else:
+                logging.error("Default value %s for node %s is not an array", value, self.name)
+                sys.exit(-1)
+
+        elif self.datatype in [VSSDataType.BOOLEAN]:
+            if not isinstance(value, bool):
+                logging.error("Defaut value %s for node %s is not a boolean", value, self.name)
+                sys.exit(-1)
+        elif self.datatype in [VSSDataType.BOOLEAN_ARRAY]:
+            if isinstance(value, list):
+                for subvalue in value:
+                    if not isinstance(subvalue, bool):
+                        logging.error("Default value %s for node %s is not a boolean", subvalue, self.name)
+                        sys.exit(-1)
+            else:
+                logging.error("Default value %s for node %s is not an array", value, self.name)
+                sys.exit(-1)
+        elif self.datatype in [VSSDataType.INT8, VSSDataType.UINT8,
+                               VSSDataType.INT16, VSSDataType.UINT16,
+                               VSSDataType.INT32, VSSDataType.UINT32,
+                               VSSDataType.INT64, VSSDataType.UINT64]:
+            if not isinstance(value, int):
+                logging.error("Value %s for node %s is not int", value, self.name)
+                sys.exit(-1)
+        elif self.datatype in [VSSDataType.INT8_ARRAY, VSSDataType.UINT8_ARRAY,
+                               VSSDataType.INT16_ARRAY, VSSDataType.UINT16_ARRAY,
+                               VSSDataType.INT32_ARRAY, VSSDataType.UINT32_ARRAY,
+                               VSSDataType.INT64_ARRAY, VSSDataType.UINT64_ARRAY]:
+            if isinstance(value, list):
+                for subvalue in value:
+                    if not isinstance(subvalue, int):
+                        logging.error("Default value %s for node %s is not int", subvalue, self.name)
+                        sys.exit(-1)
+            else:
+                logging.error("Default value %s for node %s is not an array", value, self.name)
+                sys.exit(-1)
+        elif self.datatype in [VSSDataType.FLOAT, VSSDataType.DOUBLE]:
+            if not isinstance(value, (int, float)):
+                logging.error("Default value %s for node %s is not int or float", value, self.name)
+                sys.exit(-1)
+        elif self.datatype in [VSSDataType.FLOAT_ARRAY, VSSDataType.DOUBLE_ARRAY]:
+            if isinstance(value, list):
+                for subvalue in value:
+                    if not isinstance(subvalue, (int, float)):
+                        logging.error("Default value %s for node %s is not int or float", subvalue, self.name)
+                        sys.exit(-1)
+            else:
+                logging.error("Default value %s for node %s is not an array", value, self.name)
+                sys.exit(-1)
+        else:
+            logging.warning("VSS tools cannot check if default value is valid for node %s", self.name)
+
+        # Currently allowed_names is by default "" but may change to None in the future
+        if allowed_names is not None and (allowed_names != ""):
+            if isinstance(value, list):
+                for subvalue in value:
+                    if subvalue not in allowed_names:
+                        logging.error("Value %s for node %s not listed as allowed value in %s", subvalue,
+                                      self.name, sourcefile)
+                        sys.exit(-1)
+            else:
+                if value not in allowed_names:
+                    logging.error("Value %s for node %s not listed as allowed value in %s", value,
+                                  self.name, sourcefile)
+                    sys.exit(-1)
+
     def validate_name_style(self, sourcefile):
         """Checks wether this node is adhering to VSS style conventions.
 
@@ -171,18 +270,23 @@ class VSSNode(Node):
             this conventions can still be a valid model.
 
         """
-        camel_regexp = re.compile('[A-Z][A-Za-z0-9]*$')
+
         if self.is_signal() and self.datatype == VSSDataType.BOOLEAN and not self.name.startswith("Is"):
             raise NameStyleValidationException(
-                (f'Boolean node "{self.name}" found in file "{sourcefile}" is not following naming conventions. ',
+                (f'Boolean node "{self.name}" found in file "{sourcefile}" is not following naming conventions. '
                  'It is recommended that boolean nodes start with "Is".'))
 
-        # relax camel case requirement for struct properties
         if not self.is_property() and not camel_regexp.match(self.name):
             raise NameStyleValidationException(
-                (f'Node "{self.name}" found in file "{sourcefile}" is not following naming conventions. ',
-                 'It is recommended that node names use camel case, starting with a capital letter, ',
-                 'only using letters A-z and numbers 0-9.'))
+                (f'Node "{self.name}" found in file "{sourcefile}" is not following naming conventions. '
+                 'It is recommended that node names use camel case, starting with a capital letter, '
+                 'only using letters A-Z, a-z and numbers 0-9.'))
+
+        if (self.allowed != ""):
+            for item in self.allowed:
+                self.validate_allowed(item, sourcefile)
+        if (self.default != ""):
+            self.validate_default(self.default, self.allowed, sourcefile)
 
     def base_data_type_str(self) -> str:
         """

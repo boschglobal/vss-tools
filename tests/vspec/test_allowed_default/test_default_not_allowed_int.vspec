@@ -1,0 +1,10 @@
+#
+A:
+  type: branch
+  description: Branch A.
+
+A.UInt8:
+  datatype: uint8
+  type: sensor
+  allowed: [1, 2, 3]
+  default: 4

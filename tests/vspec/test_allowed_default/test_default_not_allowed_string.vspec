@@ -1,0 +1,11 @@
+#
+A:
+  type: branch
+  description: Branch A.
+
+A.String:
+  datatype: string
+  type: sensor
+  allowed: ['JANUARY', 'FEBRUARY']
+  default: 'MARCH'
+  description: A string

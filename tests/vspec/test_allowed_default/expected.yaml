@@ -8,6 +8,7 @@ A.Float:
   - 2.54
   - 3
   datatype: float
+  default: 2.54
   description: A float
   type: actuator
 
@@ -17,22 +18,35 @@ A.Int:
   - 2
   - 3
   datatype: uint16
+  default: 2
   description: An int
+  type: sensor
+
+A.IsBool:
+  allowed:
+  - true
+  comment: Quite useless, but legal
+  datatype: boolean
+  default: true
+  description: A boolean that only can be true!
   type: sensor
 
 A.String:
   allowed:
-  - January
-  - February
+  - JANUARY
+  - FEBRUARY
   datatype: string
+  default: FEBRUARY
   description: A string
   type: sensor
 
 A.StringArray:
   allowed:
-  - January
-  - February
-  - March
+  - JANUARY
+  - FEBRUARY
+  - MARCH
   datatype: string[]
+  default:
+  - FEBRUARY
   description: A string array
   type: sensor
