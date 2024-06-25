@@ -12,10 +12,9 @@ import copy
 import logging
 import re
 import sys
-from typing import Any, List, Optional, Set
+from typing import Any, Optional
+
 from anytree import PreOrderIter  # type: ignore[import]
-
-
 from anytree import (  # type: ignore[import]
     ChildResolverError,
     Node,
@@ -45,10 +44,10 @@ class VSSNode(Node):
     # qualified struct name.
     data_type_str: str = ""
     # data type - enum representation if available
-    datatype: Optional[VSSDataType]
+    datatype: VSSDataType | None
 
     # The node types that the nodes can take
-    available_types: Set[str] = set()
+    available_types: set[str] = set()
 
     core_attributes = [
         "type",
@@ -75,9 +74,9 @@ class VSSNode(Node):
 
     # List of accepted extended attributes. In strict terminate if an attribute is
     # neither in core or extended,
-    whitelisted_extended_attributes: List[str] = []
+    whitelisted_extended_attributes: list[str] = []
 
-    unit: Optional[VSSUnit] = None
+    unit: VSSUnit | None = None
 
     min = ""
     max = ""
@@ -96,15 +95,15 @@ class VSSNode(Node):
     constUID: str | None = None
 
     # Reference nodes for using definitions from previously existing
-    reference_tree: Optional['VSSNode'] = None
+    reference_tree: Optional["VSSNode"] = None
     resolver = Resolver()
 
     @classmethod
-    def set_reference_tree(cls, tree: Optional['VSSNode']) -> None:
+    def set_reference_tree(cls, tree: Optional["VSSNode"]) -> None:
         cls.reference_tree = tree
 
     @classmethod
-    def get_reference_datatype(cls, node: 'VSSNode') -> Optional[str]:
+    def get_reference_datatype(cls, node: "VSSNode") -> str | None:
         search_name = node.qualified_name()
 
         if cls.reference_tree is None:
@@ -119,7 +118,7 @@ class VSSNode(Node):
         return None
 
     @classmethod
-    def get_reference_type(cls, node: 'VSSNode') -> Optional[str]:
+    def get_reference_type(cls, node: "VSSNode") -> str | None:
         search_name = node.qualified_name()
 
         if cls.reference_tree is None:
@@ -147,7 +146,7 @@ class VSSNode(Node):
         self,
         name,
         source_dict: dict,
-        available_types: Set[str],
+        available_types: set[str],
         parent=None,
         children=None,
         break_on_unknown_attribute=False,
@@ -162,7 +161,7 @@ class VSSNode(Node):
             parent: Optional parent of this node instance.
             children: Optional children instances of this node.
             break_on_unknown_attribute: Throw if the node contains attributes not in core VSS specification
-            break_on_name_style_vioation: Throw if this node's name is not follwing th VSS recommended style
+            break_on_name_style_vioation: Throw if this node's name is not following th VSS recommended style
 
         Returns:
             VSSNode object according to the Vehicle Signal Specification.
@@ -231,9 +230,8 @@ class VSSNode(Node):
 
         # Datatype and unit need special handling, so we do some further analysis
 
-        # Units are applicable only for primitives. Not user defined types.
+        # Units are applicable only for some primitives. Not user defined types.
         if self.has_unit():
-
             if not (self.is_signal() or self.is_property()):
                 logging.error(
                     "Item %s cannot have unit, only allowed for signal and property!",
@@ -278,7 +276,6 @@ class VSSNode(Node):
         # Datatype check for unit performed first when we have set the right datatype
 
         if self.has_unit():
-
             if not self.has_datatype():
                 logging.error(
                     "Unit specified for item not using standard datatype: %s", self.name
@@ -287,12 +284,12 @@ class VSSNode(Node):
 
         if self.has_instances() and not self.is_branch():
             logging.error(
-                f"Only branches can be instantiated. {self.qualified_name()} is of type {self.type}"
+                f"Only branches and cats can be instantiated. {self.qualified_name()} is of type {self.type}"
             )
             sys.exit(-1)
 
     def validate_name_style(self, sourcefile):
-        """Checks wether this node is adhering to VSS style conventions.
+        """Checks whether this node is adhering to VSS style conventions.
 
         Throws NameStyleValidationException when deviations are detected. A VSS model violating
         this conventions can still be a valid model.
@@ -382,7 +379,7 @@ class VSSNode(Node):
             return self.is_leaf
         return False
 
-    def get_struct_qualified_name(self, struct_name) -> Optional[str]:
+    def get_struct_qualified_name(self, struct_name) -> str | None:
         """
         Returns whether a struct node with the given relative name is defined under the branch of this node.
         A relative name is the fully qualified name of the struct without the branch prefix under which it is defined.
@@ -645,7 +642,7 @@ class VSSNode(Node):
             sys.exit(-1)
 
     @staticmethod
-    def get_tree_attrs(node: "VSSNode", proj_fn, filter_fn) -> List[Any]:
+    def get_tree_attrs(node: "VSSNode", proj_fn, filter_fn) -> list[Any]:
         """
         Collect all attributes of tree nodes rooted at `node` by applying the specified projection and filter function.
 
