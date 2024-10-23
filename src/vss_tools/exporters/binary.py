@@ -115,6 +115,8 @@ def export_node(node: VSSNode, generate_uuid, f: BinaryIO):
 @clo.overlays_opt
 @clo.quantities_opt
 @clo.units_opt
+@clo.types_opt
+@clo.types_output_opt
 def cli(
     vspec: Path,
     output: Path,
@@ -126,6 +128,8 @@ def cli(
     overlays: tuple[Path],
     quantities: tuple[Path],
     units: tuple[Path],
+    types: tuple[Path],
+    types_output: Path,
 ):
     """
     Export to Binary.
@@ -140,6 +144,7 @@ def cli(
         uuid=uuid,
         quantities=quantities,
         units=units,
+        types=types,
         overlays=overlays,
     )
     log.info("Generating binary output...")
